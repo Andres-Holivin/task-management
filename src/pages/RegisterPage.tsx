@@ -1,5 +1,4 @@
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -19,7 +18,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export function RegisterPage() {
     const { isAuthenticated } = useAuthState();
     const navigation = useNavigate();
-    const { login, register: registerUser } = useAuthActions();
+    const {  register: registerUser } = useAuthActions();
     const registerForm = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
         defaultValues: {

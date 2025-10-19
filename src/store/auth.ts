@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { LoginRequest, RegisterRequest, User, AuthState } from '@/types/auth';
 import { toast } from 'sonner';
 import { authService } from '@/services/auth';
-import { th } from 'zod/v4/locales';
+
 
 interface AuthActions {
     login: (credentials: LoginRequest) => Promise<void>;
