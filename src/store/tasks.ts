@@ -24,10 +24,11 @@ export const useTasksStore = create<TasksState>((set) => ({
             set({ isLoading: true, error: null });
             const response = await tasksApi.getAll();
             set({ tasks: Array.isArray(response.data) ? response.data : [], isLoading: false });
-        } catch (error) {
+        } catch (error: any) {
+            let errorMessage = error?.response?.data?.message || error?.message || 'Failed to fetch tasks';
             set({
                 tasks: [],
-                error: error instanceof Error ? error.message : 'Failed to fetch tasks',
+                error: errorMessage,
                 isLoading: false,
             });
             throw error;
@@ -45,9 +46,10 @@ export const useTasksStore = create<TasksState>((set) => ({
                 error: null,
             }));
             return task;
-        } catch (error) {
+        } catch (error: any) {
+            let errorMessage = error?.response?.data?.message || error?.message || 'Failed to create task';
             set({
-                error: error instanceof Error ? error.message : 'Failed to create task',
+                error: errorMessage,
                 isLoading: false,
             });
             throw error;
@@ -65,9 +67,10 @@ export const useTasksStore = create<TasksState>((set) => ({
                 error: null,
             }));
             return updatedTask;
-        } catch (error) {
+        } catch (error: any) {
+            let errorMessage = error?.response?.data?.message || error?.message || 'Failed to update task';
             set({
-                error: error instanceof Error ? error.message : 'Failed to update task',
+                error: errorMessage,
                 isLoading: false,
             });
             throw error;
@@ -83,9 +86,10 @@ export const useTasksStore = create<TasksState>((set) => ({
                 isLoading: false,
                 error: null,
             }));
-        } catch (error) {
+        } catch (error: any) {
+            let errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete task';
             set({
-                error: error instanceof Error ? error.message : 'Failed to delete task',
+                error: errorMessage,
                 isLoading: false,
             });
             throw error;

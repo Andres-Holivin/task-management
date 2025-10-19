@@ -6,6 +6,7 @@ import { useAuthStore } from './store/auth';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProtectedRoute } from './components/custom/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -16,9 +17,10 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Toaster position="top-right" richColors />
+      <Toaster position="bottom-right" richColors closeButton/>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route
           path="/"
           element={

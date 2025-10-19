@@ -13,8 +13,6 @@ class ApiClient {
                 'Content-Type': 'application/json',
             },
         });
-
-        // Request interceptor to add auth token
         this.client.interceptors.request.use(
             (config: InternalAxiosRequestConfig) => {
                 const token = localStorage.getItem('access_token');
@@ -25,24 +23,18 @@ class ApiClient {
             },
             (error) => Promise.reject(error)
         );
-
-        // Response interceptor to extract data from standardized API response
         this.client.interceptors.response.use(
             (response: AxiosResponse<ApiResponse<unknown>>) => {
-                // Check if response has the wrapped format { success, statusCode, message, data }
-                // If so, extract the data field. Otherwise, return as-is.
                 if (response.data && typeof response.data === 'object' && 'data' in response.data && 'success' in response.data) {
                     return {
                         ...response,
                         data: response.data.data,
                     } as AxiosResponse;
                 }
-                // Response is not wrapped, return as-is
                 return response;
             },
             async (error) => {
                 if (error.response?.status === 401) {
-                    // Token expired, try to refresh
                     const refreshToken = localStorage.getItem('refresh_token');
                     if (refreshToken) {
                         try {
@@ -53,16 +45,13 @@ class ApiClient {
                                 refreshToken: refreshToken,
                             });
 
-                            // Check if response has the wrapped format or direct data
                             let accessToken: string;
                             let newRefreshToken: string;
 
                             if (response.data && 'data' in response.data) {
-                                // Wrapped format: { success, statusCode, message, data }
                                 accessToken = response.data.data.accessToken;
                                 newRefreshToken = response.data.data.refreshToken;
                             } else {
-                                // Direct format: { accessToken, refreshToken }
                                 accessToken = (response.data as any).accessToken;
                                 newRefreshToken = (response.data as any).refreshToken;
                             }
@@ -70,17 +59,14 @@ class ApiClient {
                             localStorage.setItem('access_token', accessToken);
                             localStorage.setItem('refresh_token', newRefreshToken);
 
-                            // Retry the original request
                             error.config.headers.Authorization = `Bearer ${accessToken}`;
                             return this.client.request(error.config);
                         } catch {
-                            // Refresh failed, clear tokens and redirect to login
                             localStorage.removeItem('access_token');
                             localStorage.removeItem('refresh_token');
                             window.location.href = '/login';
                         }
                     } else {
-                        // No refresh token, redirect to login
                         window.location.href = '/login';
                     }
                 }

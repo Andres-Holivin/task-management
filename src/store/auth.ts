@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import type { LoginRequest, RegisterRequest, User, AuthState } from '@/types/auth';
 import { toast } from 'sonner';
 import { authService } from '@/services/auth';
+import { th } from 'zod/v4/locales';
 
 interface AuthActions {
     login: (credentials: LoginRequest) => Promise<void>;
@@ -52,10 +53,9 @@ export const useAuthStore = create<AuthStore>()(
                         error: null,
                     });
                     toast.success('Logged in successfully', { id: 'login' });
-                } catch (error) {
-                    const errorMessage = error instanceof Error
-                        ? error.message
-                        : 'Login failed. Please try again.';
+                } catch (error: any) {
+                    console.error('Login error:', error);
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Login failed. Please try again.';
 
                     set({
                         user: null,
@@ -77,17 +77,14 @@ export const useAuthStore = create<AuthStore>()(
 
                     const response = await authService.register(userData);
 
-                    // Check if response.data has success property (wrapped response)
                     if ('success' in response.data && !response.data.success) {
                         throw new Error(response.data.message || 'Registration failed');
                     }
 
                     set({ isLoading: false, error: null });
                     toast.success('Account created successfully! Please log in.', { id: 'register' });
-                } catch (error) {
-                    const errorMessage = error instanceof Error
-                        ? error.message
-                        : 'Registration failed. Please try again.';
+                } catch (error: any) {
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Registration failed. Please try again.';
 
                     set({
                         user: null,
@@ -168,10 +165,8 @@ export const useAuthStore = create<AuthStore>()(
                         isLoading: false,
                         error: null,
                     });
-                } catch (error) {
-                    const errorMessage = error instanceof Error
-                        ? error.message
-                        : 'Failed to fetch profile';
+                } catch (error: any) {
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to fetch profile';
 
                     set({
                         isLoading: false,
