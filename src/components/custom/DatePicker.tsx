@@ -1,11 +1,8 @@
-import React, { use, useEffect } from "react"
+import React, {useEffect } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Button } from "../ui/button"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "../ui/calendar"
-import momen from "moment"
-import { Label } from "../ui/label"
-import { Input } from "../ui/input"
 import { ScrollArea, ScrollBar } from "../ui/scroll-area"
 import moment from "moment"
 interface DatePickerProps {
@@ -33,7 +30,7 @@ export function DatePicker({ defaultValue, onChange, placeholder = "Pick a date"
                     className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
                 >
                     <CalendarIcon />
-                    {date ? momen(date).format("MMM D, YYYY") : <span>{placeholder}</span>}
+                    {date ? moment(date).format("MMM D, YYYY") : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -77,7 +74,7 @@ export function DatePickerWithTime({ defaultValue, onChange, placeholder = "Pick
                     className="data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal"
                 >
                     <CalendarIcon />
-                    {date ? momen(date).format("MMM D, YYYY, HH:mm") : <span>{placeholder}</span>}
+                    {date ? moment(date).format("MMM D, YYYY, HH:mm") : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-4">
