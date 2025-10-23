@@ -1,15 +1,27 @@
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { TaskStatus, type CreateTaskDto } from '@/types/task';
+import { DatePickerWithTime } from './DatePicker';
+import { Field, FieldError, FieldLabel } from '../ui/field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import moment from 'moment';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
   status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']).optional(),
+  pic: z.string().optional(),
+  deadline: z
+    .date()
+    .optional()
+    .refine(
+      (date) => !date || moment(date).isSameOrAfter(moment()),
+      { message: "Deadline cannot be in the past" }
+    ),
 });
 
 type TaskFormData = z.infer<typeof taskSchema>;
@@ -21,74 +33,132 @@ interface TaskFormProps {
   submitLabel?: string;
 }
 
-export function TaskForm({ onSubmit, onCancel, defaultValues, submitLabel = 'Create Task' }: TaskFormProps) {
+export function TaskForm({ onSubmit, onCancel, defaultValues, submitLabel = 'Create Task' }: Readonly<TaskFormProps>) {
   const {
-    register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
+    control,
     reset,
   } = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
     defaultValues: defaultValues || {
       title: '',
       description: '',
+      pic: '',
+      deadline: undefined,
       status: TaskStatus.TODO,
     },
   });
 
   const handleFormSubmit = async (data: TaskFormData) => {
-    await onSubmit(data);
-    reset();
+    try {
+      await onSubmit(data);
+      reset();
+    } catch (error) {
+      console.error('Failed to submit task form:', error);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium mb-2">
-          Title <span className="text-destructive">*</span>
-        </label>
-        <Input
-          id="title"
-          {...register('title')}
-          placeholder="Enter task title"
-          className={errors.title ? 'border-destructive' : ''}
-        />
-        {errors.title && (
-          <p className="text-sm text-destructive mt-1">{errors.title.message}</p>
+      <Controller
+        name="title"
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="title">
+              Title<span className="text-destructive">*</span>
+            </FieldLabel>
+            <Input
+              {...field}
+              id="title"
+              aria-invalid={fieldState.invalid}
+              placeholder="Enter task title"
+
+            />
+            {fieldState.invalid && (
+              <FieldError errors={[fieldState.error]} />
+            )}
+          </Field>
         )}
-      </div>
+      />
+      <Controller
+        name="description"
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="description">Description</FieldLabel>
+            <Textarea
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium mb-2">
-          Description
-        </label>
-        <Textarea
-          id="description"
-          {...register('description')}
-          placeholder="Enter task description (optional)"
-          rows={4}
-          className={errors.description ? 'border-destructive' : ''}
-        />
-        {errors.description && (
-          <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
+              {...field}
+              id="description"
+              aria-invalid={fieldState.invalid}
+              placeholder="Enter task description (optional)"
+              rows={4}
+            />
+            {fieldState.invalid && (
+              <FieldError errors={[fieldState.error]} />
+            )}
+          </Field>
         )}
-      </div>
-
-      <div>
-        <label htmlFor="status" className="block text-sm font-medium mb-2">
-          Status
-        </label>
-        <select
-          id="status"
-          {...register('status')}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <option value={TaskStatus.TODO}>To Do</option>
-          <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
-          <option value={TaskStatus.DONE}>Done</option>
-        </select>
-      </div>
-
+      />
+      <Controller
+        name="pic"
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="pic">Person In Charge</FieldLabel>
+            <Input
+              {...field}
+              id="pic"
+              aria-invalid={fieldState.invalid}
+              placeholder="Enter person in charge (optional)"
+            />
+            {fieldState.invalid && (
+              <FieldError errors={[fieldState.error]} />
+            )}
+          </Field>
+        )}
+      />
+      <Controller
+        name="deadline"
+        control={control}
+        render={({ field: { value, onChange }, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="deadline">Deadline</FieldLabel>
+            <DatePickerWithTime
+              disablePastDates
+              defaultValue={value} onChange={onChange}
+              placeholder='Pick a date (optional)'
+            />
+            {fieldState.invalid && (
+              <FieldError errors={[fieldState.error]} />
+            )}
+          </Field>
+        )}
+      />
+      <Controller
+        name="status"
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="status">Status</FieldLabel>
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger aria-label={fieldState.invalid ? 'Invalid status' : 'Status'} id="status" className="w-full">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TaskStatus.TODO}>To Do</SelectItem>
+                <SelectItem value={TaskStatus.IN_PROGRESS}>In Progress</SelectItem>
+                <SelectItem value={TaskStatus.DONE}>Done</SelectItem>
+              </SelectContent>
+            </Select>
+            {fieldState.invalid && (
+              <FieldError errors={[fieldState.error]} />
+            )}
+          </Field>
+        )}
+      />
       <div className="flex gap-3 justify-end">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
@@ -99,6 +169,6 @@ export function TaskForm({ onSubmit, onCancel, defaultValues, submitLabel = 'Cre
           {isSubmitting ? 'Submitting...' : submitLabel}
         </Button>
       </div>
-    </form>
+    </form >
   );
 }

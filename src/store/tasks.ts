@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { tasksApi } from '@/services/tasks';
 import type { Task, CreateTaskDto, UpdateTaskDto } from '@/types/task';
+import moment from 'moment';
 
 interface TasksState {
     tasks: Task[];
@@ -36,8 +37,11 @@ export const useTasksStore = create<TasksState>((set) => ({
     },
 
     createTask: async (data: CreateTaskDto) => {
-        set({ isLoading: true, error: null });
+        set({ error: null });
         try {
+            if (data.deadline) {
+                data.deadline = moment(data.deadline).toDate();
+            }
             const response = await tasksApi.create(data);
             const task = response.data;
             set((state) => ({

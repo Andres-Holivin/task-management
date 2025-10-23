@@ -11,6 +11,8 @@ export interface Task {
     title: string;
     description: string | null;
     status: TaskStatus;
+    pic: string | null;
+    deadline: string | null;
     userId: string;
     createdAt: string;
     updatedAt: string;
@@ -20,6 +22,8 @@ export interface CreateTaskDto {
     title: string;
     description?: string;
     status?: TaskStatus;
+    pic?: string;
+    deadline?: Date;
 }
 
 export interface UpdateTaskDto {

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TaskStatus, type Task } from '@/types/task';
 import { CheckCircle2, Circle, Clock, Trash2, ArrowRight, MoreVertical, Edit, PlayCircle, RotateCcw } from 'lucide-react';
+import moment from 'moment';
 
 interface TaskCardProps {
     task: Task;
@@ -91,6 +92,32 @@ export function TaskCard({ task, onStatusChange, onDelete, onEdit }: Readonly<Ta
                 return '';
         }
     };
+    const getDeadlineStyle = (due: number) => {
+        if (due <= 0) {
+            return 'text-destructive bg-red-100 rounded-md px-1 font-medium';
+        } else if (due <= 3) {
+            return 'text-yellow-600 bg-yellow-100 rounded-md px-1 font-medium';
+        } else {
+            return 'text-green-600 bg-green-100 rounded-md px-1 font-medium';
+        }
+    }
+
+    const getDeadlineInfo = () => {
+        if (task.status === TaskStatus.DONE) {
+            return <div className="text-green-600">Completed</div>;
+        }
+        if (!task.deadline) {
+            return <div className="text-gray-400">No Deadline</div>;
+        }
+        const deadlineDate = moment(task.deadline);
+        const now = moment();
+        const diffDays = deadlineDate.diff(now);
+        if (diffDays < 0) {
+            return <div className={getDeadlineStyle(diffDays)}>Overdue by {deadlineDate.fromNow(true)}</div>;
+        } else {
+            return <div className={getDeadlineStyle(deadlineDate.diff(now, 'days'))}>Due in {deadlineDate.fromNow(true)}</div>;
+        }
+    }
 
     return (
         <Card
@@ -104,22 +131,27 @@ export function TaskCard({ task, onStatusChange, onDelete, onEdit }: Readonly<Ta
                             {getStatusIcon(task.status)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <CardTitle
-                                className={`text-base font-semibold leading-snug ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'
-                                    }`}
-                            >
-                                {task.title}
-                            </CardTitle>
+                            <div className="flex items-center gap-2 justify-between">
+                                <CardTitle
+                                    className={`text-base font-semibold leading-snug ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'
+                                        }`}
+                                >
+                                    {task.title}
+                                </CardTitle>
+                                <div className="text-xs text-gray-400">
+                                    {
+                                        task.deadline
+                                            ? `Due: ${moment(task.deadline).format('MMM D, YYYY HH:mm')}`
+                                            : 'No Deadline'
+                                    }
+                                </div>
+                            </div>
                             <div className="flex items-center gap-2 mt-2 flex-wrap">
                                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${getStatusBadgeClass(task.status)}`}>
                                     {getStatusLabel(task.status)}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                    {new Date(task.createdAt).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric'
-                                    })}
+                                    {getDeadlineInfo()}
                                 </span>
                             </div>
                         </div>
