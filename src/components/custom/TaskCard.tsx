@@ -121,8 +121,11 @@ export function TaskCard({ task, onStatusChange, onDelete, onEdit }: Readonly<Ta
 
     return (
         <Card
-            className={`transition-all hover:shadow-lg hover:-translate-y-1 ${getCardBorderClass()} ${isCompleted ? 'opacity-90 bg-gradient-to-br from-gray-50 to-white' : 'bg-white'
-                }`}
+            className={`transition-all hover:shadow-lg hover:-translate-y-1 
+                ${getCardBorderClass()} ${isCompleted ? 'opacity-90 bg-gradient-to-br from-gray-50 to-white' : 'bg-white'}
+                flex flex-col justify-between
+                `
+            }
         >
             <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
@@ -221,22 +224,28 @@ export function TaskCard({ task, onStatusChange, onDelete, onEdit }: Readonly<Ta
                 </div>
             </CardHeader>
 
-            {task.description && (
-                <CardContent className="pt-0 pb-3">
+            <CardContent className="pt-0 pb-3">
+                {task.description ? (
                     <CardDescription
                         className={`text-sm leading-relaxed ${isCompleted ? 'line-through text-gray-400' : 'text-gray-600'}`}
                     >
                         {task.description}
                     </CardDescription>
-                </CardContent>
-            )}
+                ) : <></>}
+            </CardContent>
 
-            <CardFooter className="pt-3 border-t border-gray-100 flex gap-2">
+            <CardFooter className="pt-3 border-t border-gray-100 flex gap-2 flex-col">
+                {
+                    task.pic &&
+                    <div className="text-sm text-gray-600">
+                        Assigned to: <span className="font-medium">{task.pic || 'Unassigned'}</span>
+                    </div>
+                }
                 <Button
                     size="sm"
                     variant={task.status === TaskStatus.DONE ? 'outline' : 'default'}
                     onClick={() => onStatusChange(task, getNextStatus())}
-                    className="flex-1"
+                    className="w-full"
                 >
                     {getStatusButtonIcon()}
                     <span className="ml-1.5">{getStatusButtonLabel()}</span>
